@@ -1,7 +1,11 @@
-
+% this example was made by Cheng Lu, Case Western Reserve University
+% 2020 Jan 11.
 %% read image and pre-segmented nuclear mask
-
-strPath=[pwd '\imgs\'];
+if ispc
+    strPath=[pwd '\imgs\'];
+else
+    strPath=[pwd '/imgs/'];
+end
 
 strI=sprintf('%sNon_120.mat',strPath);
 load(strI);
@@ -31,7 +35,8 @@ for kk = 1:length(nuclei)
         bwNuclei(nuc(kki,1),nuc(kki,2))=1;
     end
 end
-bwNuclei = logical(imfill(bwNuclei,'holes'));% imshow(bwNuclei);
+bwNuclei = logical(bwNuclei);% imshow(bwNuclei);
+% bwNuclei = logical(imfill(bwNuclei,'holes'));% imshow(bwNuclei);
 s=regionprops(bwNuclei,'Area','Solidity','Orientation','Centroid','MajorAxisLength','MinorAxisLength','ConvexHull');
 
 figure(2);imshow(I);title('Nuclei on image');
@@ -47,7 +52,7 @@ for k = 1:length(s)
         curC=properties(k).Centroid;
         plot(curC(1),curC(2),'r.');
     end
-%     text(curC(1),curC(2),sprintf('%d',s(k).Area),'FontSize',20);
+    text(curC(1),curC(2),sprintf('%d',properties(k).Area),'FontSize',20);
 end
 hold off;
 %% display the best fit of ellipses of nuclei, and the axes ratio of a best fit ellipse 
@@ -91,7 +96,7 @@ for k = 1:length(s)
         plot(curC(1),curC(2),'r.');
     end
     plot(curHull(:,1),curHull(:,2),'r-','LineWidth', 4);
-    text(curC(1),curC(2),sprintf('%.2f',s(k).Solidity),'FontSize',20);
+    text(curC(1),curC(2),sprintf('%.2f',properties(k).Solidity),'FontSize',20);
 end
 hold off;
 %% display Cell Cluster Graphs on image
@@ -109,7 +114,12 @@ for k=1:length( bounds.centroid_r)
 end
 hold off;
 %% show global graph (delaunay trianglation)
-addpath([pwd '\George_GraphFeatureExtraction']);
+if ispc
+    addpath([pwd '\George_GraphFeatureExtraction']);
+
+else
+    addpath([pwd '/George_GraphFeatureExtraction']);
+end
 para.show=1;
 para.T_smallregion=1;
 para.I=I;
@@ -117,7 +127,6 @@ maskES(:)=1;
 get_graph_features_isoregion_forshowonly(bounds.centroid_c',bounds.centroid_r',maskES,para);
 
 %% show global graph (Voronoi diagram)
-%    Lscale_image_figure(I,.2);
 figure(6);imshow(I);axis([1 size(I,1) 1 size(I,2)]);
 hold on;
 x = [bounds.centroid_r];
@@ -130,7 +139,6 @@ plot(y,x,'rs','linewidth',1); hold on %plot centroids
 plot(VX,VY,'g-','linewidth',1)
 hold off;
 %% show nuclear polarity on image
-
 %%% turn nuclei to bounds strcture
 bounds_np=[];
 for k = 1:length(nuclei)
@@ -165,12 +173,9 @@ grays = info.grays;
 win = info.win;
 dist = info.dist;
 himg = uint16(rescale_range(gimg,0,grays-1));
-% this process maybe time comsuming, a pre-computed haralick feature can be
-% load directly from the .mat file
-% f = haralick_img(himg,bwNuclei,grays,win,dist,1); 
+% this process maybe time comsuming :)
+f = haralick_img(himg,bwNuclei,grays,win,dist,1); 
 
-% load directly from the .mat file
-load ([pwd '\imgs\Non_120_harralick.mat']);
 
 haralick_im=f.img3;
 colormap jet;
